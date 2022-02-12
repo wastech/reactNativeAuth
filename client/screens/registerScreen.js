@@ -1,9 +1,34 @@
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import {Headline, Button, TextInput} from 'react-native-paper';
+import AsyncStorage from '@react-native-community/async-storage';
+
 
 export default function RegisterScreen(props) {
-  const [text, setText] = React.useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const sendCred = async props => {
+    fetch('http://10.0.2.2:3000/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    })
+      .then(res => res.json())
+      .then(async data => {
+        try {
+          await AsyncStorage.setItem('token', data.token);
+          props.navigation.replace('home');
+        } catch (e) {
+          console.log('error hai', e);
+        }
+      });
+  };
   return (
     <View style={styles.container}>
       <Text>
@@ -11,19 +36,30 @@ export default function RegisterScreen(props) {
       </Text>
       <View style={styles.inputContainer}>
         <View>
-          <TextInput mode="flat" label="email" placeholder="enter your email" />
+          <TextInput
+            mode="flat"
+            label="email"
+            value={email}
+            placeholder="enter your email"
+            onChangeText={text => setEmail(text)}
+          />
         </View>
         <View style={{marginTop: 15, marginBottom: 15}}>
           <TextInput
             label="Password"
-            secureTextEntry
+            secureTextEntry={true}
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+            }}
             right={<TextInput.Icon name="eye" />}
           />
         </View>
         <View>
           <Button
             mode="contained"
-            style={{marginLeft: 18, marginRight: 18, marginTop: 18}}>
+            style={{marginLeft: 18, marginRight: 18, marginTop: 18}}
+            onPress={() => sendCred(props)}>
             signup
           </Button>
           <TouchableOpacity>

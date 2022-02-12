@@ -1,34 +1,74 @@
+import React, {useState} from 'react';
 import {
   StyleSheet,
   Text,
-
   TouchableOpacity,
-  KeyboardAvoidingView,
   Alert,
   View,
 } from 'react-native';
-import React from 'react';
-import { Headline, Button, TextInput } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/Ionicons';
 
-export default function LoginScreen(props) {
-  const [text, setText] = React.useState('');
+import {Headline, Button, TextInput} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-community/async-storage';
+
+// export default function LoginScreen(props) {
+
+const LoginScreen = props => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const sendCred = async (props) => {
+    fetch('http://10.0.2.2:3000/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    })
+      .then(res => res.json())
+      .then(async data => {
+        try {
+          await AsyncStorage.setItem('token', data.token);
+          props.navigation.replace('home');
+        } catch (e) {
+          console.log('error hai', e);
+          Alert(e);
+        }
+      });
+  };
   return (
     <View style={styles.container}>
       <Text>
-        <Headline style={{alignItems: 'center'}}>Headline</Headline>;
+        <Headline style={{alignItems: 'center'}}></Headline>;
       </Text>
       <View style={styles.inputContainer}>
         <View>
-          <TextInput mode="flat" label="email" placeholder="enter your email" />
+          <TextInput
+            mode="flat"
+            label="email"
+            value={email}
+            onChangeText={text => setEmail(text)}
+            placeholder="enter your email"
+          />
         </View>
         <View style={{marginTop: 15, marginBottom: 15}}>
-          <TextInput label="Password" secureTextEntry />
+          <TextInput
+            label="Password"
+            secureTextEntry={true}
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+            }}
+          />
         </View>
         <View>
           <Button
             mode="contained"
-            style={{marginLeft: 18, marginRight: 18, marginTop: 18}}>
+            style={{marginLeft: 18, marginRight: 18, marginTop: 18}}
+            onPress={() => sendCred(props)}>
             Login
           </Button>
           <TouchableOpacity>
@@ -46,7 +86,7 @@ export default function LoginScreen(props) {
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -60,3 +100,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+export default LoginScreen;
